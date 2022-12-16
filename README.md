@@ -1,0 +1,199 @@
+[![][kong-logo]][kong-url]
+
+
+
+# Kong Ingress Controller for Kubernetes (KIC)
+
+Use [Kong][kong] for Kubernetes [Ingress][ingress].
+Configure [plugins][docs-konghq-hub], health checking,
+load balancing, and more in Kong
+for Kubernetes Services, all using
+Custom Resource Definitions (CRDs) and Kubernetes-native tooling.
+
+[**Features**](#features) | [**Get started**](#get-started) | [**Documentation**](#documentation) | [**main branch builds**](#main-branch-builds) | [**Seeking help**](#seeking-help)
+
+## Features
+
+- **Ingress routing**
+  Use [Ingress][ingress] resources to configure Kong.
+- **Enhanced API management using plugins**
+  Use a wide array of [plugins][docs-konghq-hub] to monitor, transform
+  and protect your traffic.
+- **Native gRPC support**
+  Proxy gRPC traffic and gain visibility into it using Kong's plugins.
+- **Health checking and Load-balancing**
+  Load balance requests across your pods and supports active & passive health-checks.
+- **Request/response transformations**
+  Use plugins to modify your requests/responses on the fly.
+- **Authentication**
+  Protect your services using authentication methods of your choice.
+- **Declarative configuration for Kong**
+  Configure all of Kong using CRDs in Kubernetes and manage Kong declaratively.
+
+## Get started
+
+
+There are 2 versions of kong ingress controller that we will introduce below, each version has its own advantages and disadvantages, depending on your current project situation to choose the right version. best:
+- kong-dbless: with this version will not use the database, information about kong's resources will be stored on k8s, routing information under k8s management will be backed up if kong has problems. however its custom resources( Example: KongIngress, Plugin ) will be lost and you will have to reconfigure.
+- kong-db: with this version will use database to store kong's data, currently kong is supporting 2 types of databases, postgresql and casscadra, in our installed version will use postgesql. With the use of a database, in addition to backing up data, you can also interact directly with kong via Dashboard (Konga) or Kong Admin API (this is not available in kong-dbless version).
+
+1) To start kong-dbless, apply 2 file included inside the installation folder 1-kong-dbless-install.
+```cmd
+  $ kubectl apply -f /1-kong-dbless-install/1.namespace.yaml
+  $ kubectl apply -f /1-kong-dbless-install/2.kong-install.yaml
+```
+- In addition, you can install konga to manage the kong ingress controller, in this dbless version, konga only supports displaying your configuration information on kong, but you cannot interact directly on this interface.
+- To start konga-dbless, apply file included inside the installation folder 1-kong-dbless-install.
+```cmd
+  $ kubectl apply -f /1-konga-dbless-install/1.namespace.yaml
+```
+
+
+## PORT
+
+The Gateway will be available on the following ports on your server:\
+These are the default settings, you can change it in the install. \
+`:31313` on which Kong listens for incoming HTTP traffic from your clients, and forwards it to your upstream services.\
+`:31314` on which Kong listens for incoming HTTPS traffic from your clients, and forwards it to your upstream services.\
+`:31315` on which the Admin API used to configure Kong HTTP listens.\
+
+
+## Testing connectivity to Kong Gateway
+If everything is setup correctly, making a request to Kong Gateway should return back a HTTP 404 Not Found status code:
+```cmd
+curl -i <YOUR_SERVER>:31313
+```
+Response:
+```cmd
+HTTP/1.1 404 Not Found
+Content-Type: application/json; charset=utf-8
+Connection: keep-alive
+Content-Length: 48
+X-Kong-Response-Latency: 0
+Server: kong/3.0.0
+
+{"message":"no Route matched with those values"}
+
+```
+
+## Deploy an upstream HTTP application
+To proxy requests, you need an upstream application to proxy to. Deploying this test server provides a simple application that returns information about the Pod it’s running in:
+
+```cmd
+kubectl apply -f /5-plugin-ingresscontroller/1-service-test.yaml
+```
+
+## Add routing configuration
+Create routing configuration to proxy /test requests to the test server:
+```cmd
+kubectl apply -f /5-plugin-ingresscontroller/3-kong-ingress.yaml
+```
+If everything is setup correctly, making a request to Kong Gateway with path you config in ingress should return back a HTTP 200 status code:
+```cmd
+curl -i <KONG_SERVER>:31313/test/health/check
+```
+Response:
+```cmd
+{"status":"ok"}
+```
+
+## Using plugins in Kong
+Setup a KongPlugin resource:
+In this example we will use the rate limit plugin, this is a plugin that limits the number of access requests in a specific time.
+```cmd
+kubectl apply -f /5-plugin-ingresscontroller/2-create-plugin.yaml
+```
+Now we need update ingress:
+```cmd
+kubectl apply -f /5-plugin-ingresscontroller/2-ingress-with-plugin.yaml
+```
+## Kong Custom Configuration
+### Custom timeout kong ingress
+In some specific cases, we need to configure to change some default values of kong, specifically in this case, when the service uses websocket, it is necessary to remove the timeout request limit of kong ( default is 60s ). So need to create a custom resource of kong to config.
+```yaml
+kind: KongIngress
+apiVersion: configuration.konghq.com/v1
+metadata:
+  name: timeout-kong-ingress
+  namespace: kong-dbless
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+proxy:
+  protocol: http
+  connect_timeout: 360000
+  read_timeout: 360000
+  write_timeout: 360000
+```
+And then we need to set annotations on ingress and service that we need to apply.\
+Ingress
+```cmd
+annotations:
+    kubernetes.io/ingress.class: "kong"
+```
+Service
+```cmd
+annotations:
+    konghq.com/override: timeout-kong-ingress
+```
+
+```cmd
+curl <KONG_SERVER>:31315/services -k
+```
+Response:
+```json
+{
+  "data": [
+    {
+      "retries": 5,
+      "enabled": true,
+      "port": 80,
+      "path": "/",
+      "client_certificate": null,
+      "protocol": "http",
+      "connect_timeout": 360000,
+      "read_timeout": 360000,
+      "updated_at": 1671099901,
+      "ca_certificates": null,
+      "id": "9310189f-44a4-5813-bd1e-2bd8d03ffa1b",
+      "write_timeout": 360000,
+      "tags": null,
+      "host": "hello-svc.kong-dbless.8080.svc",
+      "tls_verify": null,
+      "created_at": 1671099901,
+      "name": "kong-dbless.hello-svc.pnum-8080",
+      "tls_verify_depth": null
+    }
+  ],
+  "next": null
+}
+```
+
+Note: Custom resources that are applied on services must be in the same namespace.
+
+## License
+
+```
+Copyright 2016-2022 Kong Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+   http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+```
+
+[kong-url]: https://konghq.com/
+[kong-logo]: https://konghq.com/wp-content/uploads/2018/05/kong-logo-github-readme.png
+[kong-benefits]: https://konghq.com/wp-content/uploads/2018/05/kong-benefits-github-readme.png
+[kong-master-builds]: https://hub.docker.com/r/kong/kong/tags
+[badge-action-url]: https://github.com/Kong/kong/actions
+[badge-action-image]: https://github.com/Kong/kong/workflows/Build%20&%20Test/badge.svg
+
+[busted]: https://github.com/Olivine-Labs/busted
+[luacheck]: https://github.com/mpeterv/luacheck

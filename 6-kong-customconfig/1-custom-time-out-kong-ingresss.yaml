@@ -1,0 +1,12 @@
+kind: KongIngress
+apiVersion: configuration.konghq.com/v1
+metadata:
+  name: timeout-kong-ingress
+  namespace: kong-dbless
+  annotations:
+    kubernetes.io/ingress.class: "kong"
+proxy:
+  protocol: http
+  connect_timeout: 360000
+  read_timeout: 360000
+  write_timeout: 360000

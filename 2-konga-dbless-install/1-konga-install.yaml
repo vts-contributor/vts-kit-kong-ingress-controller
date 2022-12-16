@@ -1,0 +1,45 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: konga-svc
+  labels:
+    app: konga
+  namespace: kong-dbless
+spec:
+  type: NodePort
+  ports:
+  - port: 1337
+    name: high
+    protocol: TCP
+    targetPort: 1337
+    nodePort: 31319
+  selector:
+    app: konga
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: konga
+  labels:
+    app: konga
+  namespace: kong-dbless
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: konga
+  template:
+    metadata:
+      labels:
+        app: konga
+    spec:
+      containers:
+        - name: konga
+          image: 10.60.156.72/helm/pantsel/konga:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 1337
+      imagePullSecrets:
+        - name: phuhk-secret
