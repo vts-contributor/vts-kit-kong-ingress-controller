@@ -43,9 +43,9 @@ There are 2 versions of kong ingress controller that we will introduce below, ea
   $ kubectl apply -f /1-kong-dbless-install/2.kong-install.yaml
 ```
 - In addition, you can install konga to manage the kong ingress controller, in this dbless version, konga only supports displaying your configuration information on kong, but you cannot interact directly on this interface.
-- To start konga-dbless, apply file included inside the installation folder 1-kong-dbless-install.
+- To start konga-dbless, apply file included inside the installation folder 2-konga-dbless-install.
 ```cmd
-  $ kubectl apply -f /1-konga-dbless-install/1.konga-dbless-install.yaml
+  $ kubectl apply -f /2-konga-dbless-install/1.konga-dbless-install.yaml
 ```
 2) To start kong-db, apply 3 file included inside the installation folder 2-kong-db-install.\
 Before installing the kong db version, you need to configure the database for kong first, kong currently supports 2 types of databases, Postgresql and Casscadra, in this version we use Postgresql. Here's what you need to install:\
