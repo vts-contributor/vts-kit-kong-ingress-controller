@@ -68,13 +68,14 @@ Konga
     DB_PORT: <DB_PORT> # Database port ( String )
 ```
 ```cmd
-  $ kubectl apply -f /1-kong-dbless-install/1.namespace.yaml
-  $ kubectl apply -f /1-kong-dbless-install/2.kong-install.yaml
+  $ kubectl apply -f /3-kong-db-install/1.namespace.yaml
+  $ kubectl apply -f /3-kong-db-install/2.kong-secret.yaml
+  $ kubectl apply -f /3-kong-db-install/3.kong-install.yaml
 ```
 - In addition, you can install konga to manage the kong ingress controller.
-- To start konga-db, apply file included inside the installation folder 1-kong-dbless-install.
+- To start konga-db, apply file included inside the installation folder 4-kong-db-install.
 ```cmd
-  $ kubectl apply -f /4-konga-dbless-install/1.konga-db-install.yaml
+  $ kubectl apply -f /4-konga-db-install/1.konga-db-install.yaml
 ```
 ## PORT
 
