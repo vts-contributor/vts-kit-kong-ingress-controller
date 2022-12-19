@@ -45,10 +45,37 @@ There are 2 versions of kong ingress controller that we will introduce below, ea
 - In addition, you can install konga to manage the kong ingress controller, in this dbless version, konga only supports displaying your configuration information on kong, but you cannot interact directly on this interface.
 - To start konga-dbless, apply file included inside the installation folder 1-kong-dbless-install.
 ```cmd
-  $ kubectl apply -f /1-konga-dbless-install/1.namespace.yaml
+  $ kubectl apply -f /1-konga-dbless-install/1.konga-dbless-install.yaml
 ```
-
-
+2) To start kong-db, apply 3 file included inside the installation folder 2-kong-db-install.\
+Before installing the kong db version, you need to configure the database for kong first, kong currently supports 2 types of databases, Postgresql and Casscadra, in this version we use Postgresql. Here's what you need to install:\
+Kong.
+```yaml
+    KONG_DATABASE: postgres # Kind of database kong using, we recommend using postgresql
+    KONG_PG_HOST: <HOST> # Database host
+    KONG_PG_DATABASE: <DB_NAME> # Database name
+    KONG_PG_USER: <DB_USER> # Database user ( Must have permission to create database )
+    KONG_PG_PASSWORD: <DB_PASSWORD> # Database password
+    KONG_PG_PORT: <DB_PORT> # Database port ( String )
+```
+Konga
+```yaml
+    DB_ADAPTER: postgres # Kind of database kong using, we recommend using postgresql
+    DB_HOST: <HOST> # Database host
+    DB_DATABASE: <DB_NAME> # Database name
+    DB_USER: <DB_USER> # Database user ( Must have permission to create database )
+    DB_PASSWORD: <DB_PASSWORD> # Database password
+    DB_PORT: <DB_PORT> # Database port ( String )
+```
+```cmd
+  $ kubectl apply -f /1-kong-dbless-install/1.namespace.yaml
+  $ kubectl apply -f /1-kong-dbless-install/2.kong-install.yaml
+```
+- In addition, you can install konga to manage the kong ingress controller.
+- To start konga-db, apply file included inside the installation folder 1-kong-dbless-install.
+```cmd
+  $ kubectl apply -f /4-konga-dbless-install/1.konga-db-install.yaml
+```
 ## PORT
 
 The Gateway will be available on the following ports on your server:\
@@ -56,6 +83,7 @@ These are the default settings, you can change it in the install. \
 `:31313` on which Kong listens for incoming HTTP traffic from your clients, and forwards it to your upstream services.\
 `:31314` on which Kong listens for incoming HTTPS traffic from your clients, and forwards it to your upstream services.\
 `:31315` on which the Admin API used to configure Kong HTTP listens.\
+`:31316` on which the Konga used to configure Kong on Dashboard HTTP listens.\
 
 
 ## Testing connectivity to Kong Gateway
