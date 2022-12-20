@@ -10,7 +10,7 @@ load balancing, and more in Kong
 for Kubernetes Services, all using
 Custom Resource Definitions (CRDs) and Kubernetes-native tooling.
 
-[**Features**](#features) | [**Get started**](#get-started) | [**PORT**](#PORT) | [**Testing connectivity to Kong Gateway**](#Testing connectivity to Kong Gateway) | [**Kong Custom Configuration**](#Kong Custom Configuration)
+[**Features**](#features) | [**Get started**](#get-started) | [**PORT**](#PORT) | [**Testing connectivity to Kong Gateway**](#Testing-connectivity-to-Kong-Gateway) | [**Kong Custom Configuration**](#Kong-Custom-Configuration)
 
 ## Features
 
