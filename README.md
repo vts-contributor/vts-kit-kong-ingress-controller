@@ -4,20 +4,20 @@
 
 # Kong Ingress Controller for Kubernetes (KIC)
 
-Use [Kong][kong] for Kubernetes [Ingress][ingress].
-Configure [plugins][docs-konghq-hub], health checking,
+Use [Kong] for Kubernetes [Ingress].
+Configure [plugins], health checking,
 load balancing, and more in Kong
 for Kubernetes Services, all using
 Custom Resource Definitions (CRDs) and Kubernetes-native tooling.
 
-[**Features**](#features) | [**Get started**](#get-started) | [**Documentation**](#documentation) | [**main branch builds**](#main-branch-builds) | [**Seeking help**](#seeking-help)
+[**Features**](#features) | [**Get started**](#get-started) | [**PORT**](#PORT) | [**Testing connectivity to Kong Gateway**](#Testing connectivity to Kong Gateway) | [**Kong Custom Configuration**](#Kong Custom Configuration)
 
 ## Features
 
 - **Ingress routing**
-  Use [Ingress][ingress] resources to configure Kong.
+  Use Ingress resources to configure Kong.
 - **Enhanced API management using plugins**
-  Use a wide array of [plugins][docs-konghq-hub] to monitor, transform
+  Use a wide array of plugins to monitor, transform
   and protect your traffic.
 - **Native gRPC support**
   Proxy gRPC traffic and gain visibility into it using Kong's plugins.
@@ -29,6 +29,8 @@ Custom Resource Definitions (CRDs) and Kubernetes-native tooling.
   Protect your services using authentication methods of your choice.
 - **Declarative configuration for Kong**
   Configure all of Kong using CRDs in Kubernetes and manage Kong declaratively.
+- **Rate Limit Plugin**
+  A plugin that limits the number of access requests in a specific time.
 
 ## Get started
 
@@ -88,7 +90,7 @@ These are the default settings, you can change it in [1-kong-dbless-install](/1-
 `:31313` on which Kong listens for incoming HTTP traffic from your clients, and forwards it to your upstream services.\
 `:31314` on which Kong listens for incoming HTTPS traffic from your clients, and forwards it to your upstream services.\
 `:31315` on which the Admin API used to configure Kong HTTP listens.\
-`:31316` on which the Konga used to configure Kong on Dashboard HTTP listens.\
+`:31316` on which the Konga used to configure Kong on Dashboard HTTP listens.
 
 
 ## Testing connectivity to Kong Gateway
@@ -109,7 +111,7 @@ Server: kong/3.0.0
 
 ```
 
-## Deploy an upstream HTTP application
+## Deploy a test upstream HTTP application
 To proxy requests, you need an upstream application to proxy to. Deploying this test server provides a simple application that returns information about the Pod it’s running in:
 [5-plugin-ingresscontroller/1-service-test](5-plugin-ingresscontroller/1-service-test.yaml)
 ```cmd
@@ -132,17 +134,18 @@ Response:
 
 ## Using plugins in Kong
 Setup a KongPlugin resource:
-In this example we will use the rate limit plugin, this is a plugin that limits the number of access requests in a specific time.
+In this example we will use the `rate limit plugin`, this is a plugin that limits the number of access requests in a specific time.
 
-You can change the config parameters for this plugin here: [5-plugin-ingresscontroller/2-create-rate-limit-plugin](/5-plugin-ingresscontroller/2-create-rate-limit-plugin.yaml)
+You can change the config parameters for this plugin here: [5-plugin-ingresscontroller/2-create-rate-limit-plugin](/5-plugin-ingresscontroller/2-create-rate-limit-plugin.yaml)\
+`rate limit plugin`
 ```yaml
 metadata:
   name: rate-limiting-example # plugin name
   namespace: kong-dbless
 config:
-  second: 3                   # limited number of requests per second
-  minute: 5                   # limited number of requests per minute
-  hour: 10000                 # limited number of requests per hour
+  second: 300                   # limited number of requests per second
+  minute: 18000                   # limited number of requests per minute
+  #hour: 100000                 # limited number of requests per hour
   policy: local
 plugin: rate-limiting         # plugin
 ```
@@ -177,12 +180,12 @@ proxy:
   write_timeout: 360000
 ```
 And then we need to set annotations on ingress and service that we need to apply.\
-Ingress
+[Ingress](/5-plugin-ingresscontroller/3-kong-ingress.yaml)
 ```cmd
 annotations:
     kubernetes.io/ingress.class: "kong"
 ```
-Service
+[Service](/5-plugin-ingresscontroller/1-service-test.yaml)
 ```cmd
 annotations:
     konghq.com/override: timeout-kong-ingress
