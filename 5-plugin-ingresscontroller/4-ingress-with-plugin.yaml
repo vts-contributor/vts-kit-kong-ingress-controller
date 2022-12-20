@@ -4,6 +4,7 @@ metadata:
   name: kong-ingress
   namespace: kong-dbless
   annotations:
+    konghq.com/plugins: rate-limiting-example
     konghq.com/strip-path: "true"
 spec:
   ingressClassName: kong

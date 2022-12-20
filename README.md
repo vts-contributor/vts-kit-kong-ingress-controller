@@ -33,38 +33,42 @@ Custom Resource Definitions (CRDs) and Kubernetes-native tooling.
 ## Get started
 
 
-There are 2 versions of kong ingress controller that we will introduce below, each version has its own advantages and disadvantages, depending on your current project situation to choose the right version. best:
-- kong-dbless: with this version will not use the database, information about kong's resources will be stored on k8s, routing information under k8s management will be backed up if kong has problems. however its custom resources( Example: KongIngress, Plugin ) will be lost and you will have to reconfigure.
-- kong-db: with this version will use database to store kong's data, currently kong is supporting 2 types of databases, postgresql and casscadra, in our installed version will use postgesql. With the use of a database, in addition to backing up data, you can also interact directly with kong via Dashboard (Konga) or Kong Admin API (this is not available in kong-dbless version).
+There are 2 versions of kong ingress controller that we will introduce below, each version has its own advantages and disadvantages, depending on your current project situation to choose the suitable version:
+- `kong-dbless`: with this version will not use the database, configuration about kong's resources will be stored on k8s, routing information under k8s management will be backed up if kong has problems. however its custom resources( Example: KongIngress, Plugin ) will be lost and you will have to reconfigure.
+- `kong-db`: with this version will use database to store kong's data, currently kong is supporting 2 types of databases, postgresql and casscadra, in our installed version will use postgesql. With the use of a database, in addition to backing up data, you can also interact directly with kong via Dashboard (Konga) or Kong Admin API (this is not available in kong-dbless version).
 
-1) To start kong-dbless, apply 2 file included inside the installation folder 1-kong-dbless-install.
+`Option:1`  To start kong-dbless, apply 2 file included inside the installation folder [1-kong-dbless-install](/1-kong-dbless-install).
 ```cmd
   $ kubectl apply -f /1-kong-dbless-install/1.namespace.yaml
   $ kubectl apply -f /1-kong-dbless-install/2.kong-install.yaml
 ```
 - In addition, you can install konga to manage the kong ingress controller, in this dbless version, konga only supports displaying your configuration information on kong, but you cannot interact directly on this interface.
-- To start konga-dbless, apply file included inside the installation folder 2-konga-dbless-install.
+- To start konga-dbless, apply file included inside the installation folder [2-konga-dbless-install](/2-konga-dbless-install/1-konga-dbless-install.yaml).
 ```cmd
   $ kubectl apply -f /2-konga-dbless-install/1.konga-dbless-install.yaml
 ```
-2) To start kong-db, apply 3 file included inside the installation folder 2-kong-db-install.\
-Before installing the kong db version, you need to configure the database for kong first, kong currently supports 2 types of databases, Postgresql and Casscadra, in this version we use Postgresql. Here's what you need to install:\
-Kong.
+`Option:2` To start kong-db, apply 3 file included inside the installation folder [3-kong-db-install](/3-kong-db-install).\
+Before installing the kong db version, you need to configure the database for kong first, kong currently supports 2 types of databases, Postgresql and Casscadra, in this version we use Postgresql. 
+Here's what you need to install, you can change it in [3-kong-db-install/2-kong-secret](/3-kong-db-install/2-kong-secret.yaml):
+
+
+- `Kong`
 ```yaml
     KONG_DATABASE: postgres # Kind of database kong using, we recommend using postgresql
     KONG_PG_HOST: <HOST> # Database host
-    KONG_PG_DATABASE: <DB_NAME> # Database name
-    KONG_PG_USER: <DB_USER> # Database user ( Must have permission to create database )
-    KONG_PG_PASSWORD: <DB_PASSWORD> # Database password
+    KONG_PG_DATABASE: <DB_NAME> # Kong database name
+    KONG_PG_USER: <DB_USER> # Kong database user ( Must have permission to create database )
+    KONG_PG_PASSWORD: <DB_PASSWORD> # Kong database password
     KONG_PG_PORT: <DB_PORT> # Database port ( String )
 ```
-Konga
+
+- `Konga`
 ```yaml
     DB_ADAPTER: postgres # Kind of database kong using, we recommend using postgresql
     DB_HOST: <HOST> # Database host
-    DB_DATABASE: <DB_NAME> # Database name
-    DB_USER: <DB_USER> # Database user ( Must have permission to create database )
-    DB_PASSWORD: <DB_PASSWORD> # Database password
+    DB_DATABASE: <DB_NAME> # Konga database name
+    DB_USER: <DB_USER> # Kong database user 
+    DB_PASSWORD: <DB_PASSWORD> # Kong database password
     DB_PORT: <DB_PORT> # Database port ( String )
 ```
 ```cmd
@@ -73,14 +77,14 @@ Konga
   $ kubectl apply -f /3-kong-db-install/3.kong-install.yaml
 ```
 - In addition, you can install konga to manage the kong ingress controller.
-- To start konga-db, apply file included inside the installation folder 4-kong-db-install.
+- To start konga-db, apply file included inside the installation folder [4-konga-db-install](/4-konga-db-install/1-konga-db-install.yaml).
 ```cmd
   $ kubectl apply -f /4-konga-db-install/1.konga-db-install.yaml
 ```
 ## PORT
 
 The Gateway will be available on the following ports on your server:\
-These are the default settings, you can change it in the install. \
+These are the default settings, you can change it in [1-kong-dbless-install](/1-kong-dbless-install/2.kong-install.yaml) or [3-kong-db-install](/3-kong-db-install/3-kong-install.yaml) before install. \
 `:31313` on which Kong listens for incoming HTTP traffic from your clients, and forwards it to your upstream services.\
 `:31314` on which Kong listens for incoming HTTPS traffic from your clients, and forwards it to your upstream services.\
 `:31315` on which the Admin API used to configure Kong HTTP listens.\
@@ -107,13 +111,13 @@ Server: kong/3.0.0
 
 ## Deploy an upstream HTTP application
 To proxy requests, you need an upstream application to proxy to. Deploying this test server provides a simple application that returns information about the Pod it’s running in:
-
+[5-plugin-ingresscontroller/1-service-test](5-plugin-ingresscontroller/1-service-test.yaml)
 ```cmd
 kubectl apply -f /5-plugin-ingresscontroller/1-service-test.yaml
 ```
 
 ## Add routing configuration
-Create routing configuration to proxy /test requests to the test server:
+Create routing configuration to proxy /test requests to the test server: [5-plugin-ingresscontroller/3-kong-ingress](5-plugin-ingresscontroller/3-kong-ingress.yaml)
 ```cmd
 kubectl apply -f /5-plugin-ingresscontroller/3-kong-ingress.yaml
 ```
@@ -129,16 +133,35 @@ Response:
 ## Using plugins in Kong
 Setup a KongPlugin resource:
 In this example we will use the rate limit plugin, this is a plugin that limits the number of access requests in a specific time.
-```cmd
-kubectl apply -f /5-plugin-ingresscontroller/2-create-plugin.yaml
+
+You can change the config parameters for this plugin here: [5-plugin-ingresscontroller/2-create-rate-limit-plugin](/5-plugin-ingresscontroller/2-create-rate-limit-plugin.yaml)
+```yaml
+metadata:
+  name: rate-limiting-example # plugin name
+  namespace: kong-dbless
+config:
+  second: 3                   # limited number of requests per second
+  minute: 5                   # limited number of requests per minute
+  hour: 10000                 # limited number of requests per hour
+  policy: local
+plugin: rate-limiting         # plugin
 ```
-Now we need update ingress:
 ```cmd
-kubectl apply -f /5-plugin-ingresscontroller/2-ingress-with-plugin.yaml
+kubectl apply -f /5-plugin-ingresscontroller/2-create-rate-limit-plugin.yaml
+```
+
+To specify which service to apply the plugin to, we need to configure it in the annotation on [5-plugin-ingresscontroller/4-ingress-with-plugin](/5-plugin-ingresscontroller/4-ingress-with-plugin.yaml)
+```yaml
+annotations:
+  konghq.com/plugins: rate-limiting-example  # plugin name
+```
+Now we need update ingress [5-plugin-ingresscontroller/4-ingress-with-plugin](/5-plugin-ingresscontroller/4-ingress-with-plugin.yaml)
+```cmd
+kubectl apply -f /5-plugin-ingresscontroller/4-ingress-with-plugin.yaml
 ```
 ## Kong Custom Configuration
 ### Custom timeout kong ingress
-In some specific cases, we need to configure to change some default values of kong, specifically in this case, when the service uses websocket, it is necessary to remove the timeout request limit of kong ( default is 60s ). So need to create a custom resource of kong to config.
+In some specific cases, we need to configure to change some default values of kong, specifically in this case, when the service uses websocket, it is necessary to remove the timeout request limit of kong ( default is 60s ). So need to create a custom resource of kong to config [6-kong-customconfig/1-custom-time-out-kong](/6-kong-customconfig/1-custom-time-out-kong-ingresss.yaml).
 ```yaml
 kind: KongIngress
 apiVersion: configuration.konghq.com/v1
