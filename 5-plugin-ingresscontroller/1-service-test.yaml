@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
         - name: hello
-          image: 10.60.156.72/vbcs/test:0.2
+          image: <HABOR_SERVER>/vbcs/test:0.2
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080

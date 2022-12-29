@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: konga
-        image: pantsel/konga:latest
+        image: <HABOR_SERVER>/helm/pantsel/konga:latest
         envFrom:
           - secretRef:
               name: konga-secret
@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
       - name: kong-pre
-        image: pantsel/konga:latest
+        image: <HARBOR_SERVER>/helm/pantsel/konga:latest
         envFrom:
           - secretRef:
               name: konga-secret
@@ -63,7 +63,7 @@ spec:
     - protocol: TCP
       port: 1337
       targetPort: 1337
-      nodePort: 31316
+      nodePort: 8316
   selector:
     app: konga
   type: NodePort

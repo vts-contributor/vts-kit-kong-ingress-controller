@@ -1696,7 +1696,7 @@ spec:
           value: /dev/stderr
         - name: KONG_ROUTER_FLAVOR
           value: traditional
-        image: 10.60.156.72/helm/kong:3.0
+        image: <HARBOR_SERVER>/helm/kong:3.0
         lifecycle:
           preStop:
             exec:
@@ -1755,7 +1755,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: 10.60.156.72/helm/kong/kubernetes-ingress-controller:2.7.0
+        image: <HARBOR_SERVER>/helm/kong/kubernetes-ingress-controller:2.7.0
         imagePullPolicy: IfNotPresent
         livenessProbe:
           failureThreshold: 3

@@ -37,7 +37,7 @@ spec:
     spec:
       containers:
         - name: konga
-          image: 10.60.156.72/helm/pantsel/konga:latest
+          image: <HARBOR_SERVER>/helm/pantsel/konga:latest
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 1337
